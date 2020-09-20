@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"math/big"
 	"sync"
 	"sync/atomic"
@@ -95,7 +96,7 @@ func restoreFuncPtr(ptr int64) funcEntry {
 
 //export proxy
 func proxy(ctx *C.JSContext, thisVal C.JSValueConst, argc C.int, argv *C.JSValueConst) C.JSValue {
-	refs := (*[1 << 30]C.JSValueConst)(unsafe.Pointer(argv))[:argc:argc]
+	refs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof(uintptr)]C.JSValueConst)(unsafe.Pointer(argv))[:argc:argc]
 
 	id := C.int64_t(0)
 	C.JS_ToInt64(ctx, &id, refs[0])
@@ -474,7 +475,7 @@ func (v Value) PropertyNames() ([]PropertyEnum, error) {
 	}
 	defer C.js_free(v.ctx.ref, unsafe.Pointer(ptr))
 
-	entries := (*[1 << 30]C.JSPropertyEnum)(unsafe.Pointer(ptr))
+	entries := (*[(math.MaxInt32 - 1) / unsafe.Sizeof(uintptr)]C.JSPropertyEnum)(unsafe.Pointer(ptr))
 
 	names := make([]PropertyEnum, uint32(size))
 
